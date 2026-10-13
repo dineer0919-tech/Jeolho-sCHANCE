@@ -253,6 +253,32 @@ html,body{height:100%;margin:0;background:var(--ink);overflow:hidden;color:var(-
 #gTalk span{font:400 16px/1.3 var(--font-serif);color:var(--bone);min-width:0;flex:1}
 .news .tag{display:inline-block;margin-right:6px;padding:2px 6px;font:600 10px/1.3 var(--font-ui);letter-spacing:.08em;color:#fff;vertical-align:1px}
 .news .tag.rumor{background:#8a6d1f}.news .tag.brk{background:var(--blood)}.news .tag.fake{background:#5b544c}
+#levRow{display:flex;align-items:center;gap:6px;margin-top:10px;font:600 12px/1 var(--font-ui);color:var(--bone-dim)}
+#levRow button{padding:7px 10px;border:1px solid rgba(236,230,221,.3);background:transparent;color:var(--bone);font:700 13px/1 var(--font-ui);cursor:pointer}
+#levRow button[aria-pressed="true"]{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+#levRow button[data-x="10"][aria-pressed="true"]{background:var(--rise);border-color:var(--rise);color:#fff}
+#levRow small{margin-left:auto;font:600 11px/1.2 var(--font-ui);color:var(--bone-dim);text-align:right}
+#levRow.on small{color:var(--rise)}
+#chartWrap{bottom:78px!important}
+#ticker{position:absolute;left:12px;right:12px;bottom:34px;height:34px;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(236,230,221,.05);border:1px solid rgba(236,230,221,.12);color:var(--bone);font:600 13px/1 var(--font-ui);text-align:left;cursor:pointer;overflow:hidden}
+#ticker b{flex:none;font:400 13px/1 var(--font-shout);letter-spacing:.12em;color:var(--gold)}
+#ticker span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ticker .tu{color:var(--rise)}#ticker .td{color:var(--fall)}#ticker .ts{color:var(--gold);margin-left:6px}
+#ticker.fresh{border-color:var(--gold);animation:tkp 1s ease-in-out 3}
+@keyframes tkp{50%{background:rgba(212,180,106,.18)}}
+#list .nm em.s{color:#8fb0ff}#list .nm em.l{color:var(--rise)}
+#list .nm i.nb{font-style:normal;font-size:10px;margin-left:5px;vertical-align:1px}
+#list .nm i.nb.up{color:var(--rise)}#list .nm i.nb.down{color:var(--fall)}#list .nm i.nb.mid{color:var(--bone-dim)}
+#begAsk{position:absolute;inset:0;background:rgba(5,5,7,.78);display:grid;place-items:center;z-index:7}
+#begAsk[hidden]{display:none}
+#begAsk .box{width:460px;background:#151318;border:1px solid rgba(224,66,58,.5);padding:26px 28px;text-align:center}
+#begAsk img{width:72px;height:72px;border-radius:50%;object-fit:cover;border:1px solid rgba(236,230,221,.3)}
+#begAsk h3{margin:12px 0 8px;font:800 22px/1.3 var(--font-serif)}
+#begAsk p{margin:0;font:400 14px/1.6 var(--font-ui);color:var(--bone-dim);word-break:keep-all}
+#begAsk .row{display:flex;gap:10px;margin-top:18px}
+#begAsk .row button{flex:1;padding:14px;font:700 15px/1 var(--font-ui);cursor:pointer;border:1px solid rgba(236,230,221,.3);background:transparent;color:var(--bone)}
+#begAsk #begYes{background:var(--rise);border-color:var(--rise);color:#fff}
+
 #giftCard{position:absolute;right:120px;top:70px;width:420px;height:300px;display:grid;place-items:center;pointer-events:none}
 #giftCard[hidden]{display:none}
 .gcRays{position:absolute;inset:-90px;background:repeating-conic-gradient(rgba(212,180,106,.22) 0 9deg,transparent 9deg 22deg);border-radius:50%;-webkit-mask:radial-gradient(circle,#000 25%,transparent 68%);mask:radial-gradient(circle,#000 25%,transparent 68%);animation:gcspin 9s linear infinite}
@@ -540,6 +566,7 @@ html,body{height:100%;margin:0;background:var(--ink);overflow:hidden;color:var(-
           <button type="button" class="arrow" id="next2" aria-label="다음 종목">▶</button>
         </div>
         <div id="chartWrap"><canvas id="cv"></canvas><div id="tip"></div></div>
+        <button type="button" id="ticker"><b>NEWS</b><span id="tickTxt">—</span></button>
         <div id="pager"></div>
       </section>
 
@@ -551,7 +578,9 @@ html,body{height:100%;margin:0;background:var(--ink);overflow:hidden;color:var(-
             <dt>평균 단가</dt><dd id="hAvg">—</dd>
             <dt>평가 손익</dt><dd id="hPL">—</dd>
             <dt>공매도</dt><dd id="hShort">—</dd>
+            <dt>레버리지</dt><dd id="hLev">—</dd>
           </dl>
+          <div id="levRow"><span>배율</span><button type="button" data-x="1" aria-pressed="true">×1</button><button type="button" data-x="3" aria-pressed="false">×3</button><button type="button" data-x="10" aria-pressed="false">×10</button><small id="levHint">일반 매매</small></div>
           <div class="qty">
             <button type="button" id="qMinus" aria-label="수량 줄이기">−</button>
             <input id="qInput" type="number" min="1" value="1" inputmode="numeric" aria-label="주문 수량">
@@ -633,6 +662,7 @@ html,body{height:100%;margin:0;background:var(--ink);overflow:hidden;color:var(-
         <div id="cutSub"></div><div id="cutText">절호의 찬스잖아요!!!!</div><div class="cflash"></div>
         <div id="cutRes" hidden><small>칼리스토 돌발 행동</small><b id="cutResTxt"></b><span id="cutResAmt"></span><i>화면을 누르면 닫힙니다</i></div></div>
       <div id="tut" hidden><div id="tutHole"></div><div id="tutBox"><img id="tutIcon" alt=""><div class="ttxt"><b id="tutName"></b><p id="tutText"></p><small id="tutHint"></small></div><button type="button" id="tutNext">다음 ▶</button></div></div>
+      <div id="begAsk" hidden><div class="box"><img id="begAskImg" alt=""><h3 id="begAskT"></h3><p id="begAskP"></p><div class="row"><button type="button" id="begYes">구걸한다…</button><button type="button" id="begNo">그만둔다</button></div></div></div>
       <div id="gMenuSheet" hidden><div class="box">
         <h3>메뉴</h3>
         <button type="button" id="mResume">계속하기</button>
@@ -1051,9 +1081,9 @@ async function runScript(SC,handler){
 /* ================= trading game ================= */
 const TICK=30;
 const OUTLETS=['둥지 경제신문','뒷골목 소식지','해결사 협회 공보','도시 일보','날개 동향 리포트'];
-const OUTLET_REL={'도시 일보':.85,'날개 동향 리포트':.78,'해결사 협회 공보':.62,'둥지 경제신문':.5,'뒷골목 소식지':.3};
+const OUTLET_REL={'도시 일보':.9,'날개 동향 리포트':.84,'해결사 협회 공보':.62,'둥지 경제신문':.5,'뒷골목 소식지':.3};
 function relStars(o){const r=OUTLET_REL[o];if(r==null)return '';const n=r>=.75?3:r>=.5?2:1;return ' <span class="rel r'+n+'" title="신뢰도">'+'★'.repeat(n)+'☆'.repeat(3-n)+'</span>'}
-const FEE=.015;
+const FEE_BUY=.0002,FEE_SELL=.002;
 function cfill(t,name){return t.replace(/\{c(은|이|을|와|로)?\}/g,(m,p)=>name+(!p?'':p==='은'?josa(name,'은','는'):p==='이'?josa(name,'이','가'):p==='을'?josa(name,'을','를'):p==='와'?josa(name,'과','와'):josa(name,'으로','로')))}
 const GEN={pos:[
   ['{c}, 분기 실적 \'역대 최고\' 발표','시장 예상치를 크게 웃돌았다. 경영진은 \'이제 시작일 뿐\'이라며 자신감을 드러냈다.'],
@@ -1226,7 +1256,7 @@ function newGame(){
   const stocks=COS.map(c=>{let p=c.p;const hist=[];
     for(let i=0;i<18;i++){const o=p;const ch=gauss()*c.vol*.5+(c.id==='N'?-.04:0);p=Math.max(5,o*(1+ch));hist.push(candle(o,p,c.vol))}
     return {id:c.id,price:p,trend:0,trendLeft:0,hist}});
-  G={round:1,cash:12000,hold:{N:{q:30,avg:1980}},stocks,news:[],left:TICK,seq:0,items:{x2:false,x4:false},speed:1,lotto:[],tutDone:false,short:{}};initDebt();
+  G={round:1,cash:30000,hold:{N:{q:30,avg:1980}},stocks,news:[],left:TICK,seq:0,items:{x2:false,x4:false},speed:1,lotto:[],tutDone:false,short:{}};initDebt();
   makeNews(3,['N']);
 }
 function candle(o,c,vol){const hi=Math.max(o,c)*(1+Math.abs(gauss())*vol*.18),lo=Math.min(o,c)*(1-Math.abs(gauss())*vol*.18);return {o,c,h:hi,l:lo}}
@@ -1277,7 +1307,7 @@ function tickMarket(){
   G.stocks.forEach((st,i)=>{
     const c=COS[i],o=st.price;
     let ch=gauss()*c.vol*.55;
-    if(st.trendLeft>0){ch+=st.trend*c.vol*rnd(.45,1.1);st.trendLeft--}
+    if(st.trendLeft>0){ch+=st.trend*c.vol*rnd(.75,1.4);st.trendLeft--}
     if(G.macro&&G.macro.left>0)ch+=G.macro.dir*c.vol*rnd(.2,.6);
     if(Math.random()<.04)ch+=(Math.random()<.5?-1:1)*c.vol*2.2;
     ch+=( (c.p-o)/c.p )*.03;
@@ -1314,7 +1344,7 @@ function tickMarket(){
 /* ---- render ---- */
 const gq=id=>document.getElementById(id);
 function stockChg(st){const h=st.hist[st.hist.length-1];return (h.c-h.o)/h.o}
-function totalAsset(){return G.cash+G.stocks.reduce((s,st)=>s+(G.hold[st.id]?G.hold[st.id].q*st.price:0)-((G.short&&G.short[st.id])?G.short[st.id].q*st.price:0),0)}
+function totalAsset(){return G.cash+levTotal()+G.stocks.reduce((s,st)=>s+(G.hold[st.id]?G.hold[st.id].q*st.price:0)-((G.short&&G.short[st.id])?G.short[st.id].q*st.price:0),0)}
 function cls(v){return v>0.0005?'up':v<-0.0005?'down':'flat'}
 function pct(v){return (v>0?'▲ ':v<0?'▼ ':'')+Math.abs(v*100).toFixed(1)+'%'}
 
@@ -1338,19 +1368,37 @@ function renderTrade(){
   gq('hAvg').textContent=h&&h.q?fmt(h.avg)+' 안':'—';
   if(h&&h.q){const pl=(st.price-h.avg)*h.q,r=(st.price-h.avg)/h.avg;gq('hPL').textContent=(pl>0?'+':'')+fmt(pl)+' 안 ('+(r*100).toFixed(1)+'%)';gq('hPL').className=cls(r)}
   else{gq('hPL').textContent='—';gq('hPL').className=''}
-  const q=qty();gq('qCost').textContent='주문 금액 '+fmt(q*st.price)+' 안 · 수수료 '+fmt(q*st.price*FEE)+' 안';
-  gq('buy').disabled=q*st.price*(1+FEE)>G.cash||q<1;gq('sell').disabled=!h||h.q<q||q<1;
+  const L=levOf(st.id);
+  if(L){const v=levVal(st.id),base=L.q*L.avg,pl=v-base;gq('hLev').textContent='×'+L.x+' '+(Math.round(L.q*10)/10)+'주 · '+(pl>0?'+':'')+fmt(pl)+' 안';gq('hLev').className=cls(pl)}
+  else{gq('hLev').textContent='—';gq('hLev').className=''}
+  const q=qty(),n=q*st.price;
+  if(levX>1){gq('qCost').textContent='증거금 '+fmt(n)+' 안 → 굴리는 돈 '+fmt(n*levX)+' 안';
+    gq('buy').disabled=n*(1+levX*FEE_BUY)>G.cash||q<1||(L&&L.x!==levX);gq('sell').disabled=!L||L.x!==levX||q<1}
+  else{gq('qCost').textContent='주문 금액 '+fmt(n)+' 안 · 수수료 '+fmt(Math.max(1,n*FEE_BUY))+' 안 (매수 0.02% / 매도 0.2%)';
+    gq('buy').disabled=n*(1+FEE_BUY)>G.cash||q<1;gq('sell').disabled=!h||h.q<q||q<1}
   const sh=G.short&&G.short[st.id];
   if(sh){const pl=(sh.avg-st.price)*sh.q;gq('hShort').textContent=sh.q+'주 · '+(pl>0?'+':'')+fmt(pl)+' 안';gq('hShort').className=cls(pl/sh.avg/sh.q)}else{gq('hShort').textContent='—';gq('hShort').className=''}
-  gq('shortBtn').disabled=q<1;gq('coverBtn').disabled=!sh||q<1;
+  gq('shortBtn').disabled=q<1||levX>1;gq('coverBtn').disabled=!sh||q<1||levX>1;
+  renderTicker();
+}
+function newsMark(id){const n=G.news.find(n=>n.id===id&&G.round-n.round<=1&&(!n.kind||n.kind==='tip'||n.kind==='rumor'||n.kind==='break'));if(!n)return '';
+  const d=n.kind==='rumor'?'mid':n.dir>0?'up':n.dir<0?'down':'mid';return `<i class="nb ${d}" title="새 뉴스">${n.kind==='rumor'?'◆':d==='up'?'▲':d==='down'?'▼':'●'}</i>`}
+function renderTicker(){
+  const id=COS[gSel].id;const n=G.news.find(n=>n.id===id&&G.round-n.round<=2)||G.news.find(n=>n.id==='*'&&G.round-n.round<=1)||G.news.find(n=>COS.some(c=>c.id===n.id));
+  const el=gq('tickTxt');if(!n){el.textContent='새 소식이 없습니다.';return}
+  const c=COS.find(x=>x.id===n.id),who=c?c.name:'시장 전체',tag=n.kind==='rumor'?'[소문] ':n.kind==='tip'?'[제보] ':n.kind==='corr'?'':'';
+  const d=(n.kind==='gos'||n.kind==='corr'||n.kind==='rumor')?'':n.dir>0?'<em class="tu">▲호재</em> ':n.dir<0?'<em class="td">▼악재</em> ':'';
+  const stars=(!n.kind||n.kind==='macro')?'<em class="ts">'+(relStars(n.outlet).replace(/<[^>]+>/g,'').trim())+'</em>':'';
+  el.innerHTML=d+tag+who+' · '+n.h.replace(/</g,'&lt;')+stars;
+  gq('ticker').classList.toggle('fresh',n.round===G.round&&n.fresh);
 }
 function renderList(){
   gq('list').innerHTML=G.stocks.map((st,i)=>{const ch=stockChg(st),h=G.hold[st.id];
-    return `<button type="button" data-i="${i}" class="${i===gSel?'on':''}"><span class="nm">${COS[i].name}${h&&h.q?`<em>${h.q}주</em>`:''}</span><span class="pr">${fmt(st.price)}</span><span class="ch ${cls(ch)}">${pct(ch)}</span></button>`}).join('');
+    return `<button type="button" data-i="${i}" class="${i===gSel?'on':''}"><span class="nm">${COS[i].name}${newsMark(st.id)}${h&&h.q?`<em>${h.q}주</em>`:''}${G.short&&G.short[st.id]?`<em class="s">공${G.short[st.id].q}주</em>`:''}${levOf(st.id)?`<em class="l">×${levOf(st.id).x}</em>`:''}</span><span class="pr">${fmt(st.price)}</span><span class="ch ${cls(ch)}">${pct(ch)}</span></button>`}).join('');
 }
 function renderNews(){
-  gq('chips').innerHTML=[['all','전체']].concat(COS.map(c=>[c.id,c.name.split(' ')[0]])).map(([id,l])=>`<button type="button" class="chip" data-f="${id}" aria-pressed="${newsFilter===id}">${l}</button>`).join('');
-  const list=G.news.filter(n=>newsFilter==='all'||n.id===newsFilter||(n.id==='*'&&newsFilter!=='all'));
+  gq('chips').innerHTML=[['all','전체'],['mine','내 종목']].concat(COS.map(c=>[c.id,c.name.split(' ')[0]])).map(([id,l])=>`<button type="button" class="chip" data-f="${id}" aria-pressed="${newsFilter===id}">${l}</button>`).join('');
+  const mine=id=>(G.hold[id]&&G.hold[id].q)||(G.short&&G.short[id])||levOf(id);const list=G.news.filter(n=>newsFilter==='all'||(newsFilter==='mine'?(n.id==='*'||mine(n.id)):(n.id===newsFilter||n.id==='*')));
   gq('newsList').innerHTML=list.length?list.map(n=>{const c=COS.find(x=>x.id===n.id)||{name:n.id==='*'?'시장 전체':'도시 가십'};const hint=HINTS[n.dir>0?'pos':'neg'][n.seq%3];
     const tag=n.kind==='rumor'?'<span class="tag rumor">소문</span>':n.kind==='break'?'<span class="tag brk">속보</span>':n.kind==='fake'?'<span class="tag fake">해명</span>':n.kind==='corr'?'<span class="tag fake">정정</span>':n.kind==='macro'?'<span class="tag macro">시황</span>':n.kind==='gos'?'<span class="tag gos">가십</span>':n.kind==='tip'?'<span class="tag tip">제보</span>':'';
     const hint2=n.kind==='rumor'?'확인되지 않은 소문 · 큰 움직임의 전조일 수 있음':n.kind==='break'?'대형 사건 발생':n.kind==='fake'?'소문 부인':n.kind==='corr'?'앞선 기사는 오보였음':n.kind==='macro'?(n.dir>0?'시장 전체 훈풍 예상':'시장 전체 한파 예상'):n.kind==='gos'?'시장 영향 없음 · 읽을거리':n.kind==='tip'?'조력자의 정보 · 믿을 만함':hint;
@@ -1473,6 +1521,14 @@ const TALK={
   megaDodged:[[['alb','{n}가 {p} 떨어졌어요. 우리는 안 샀어요.'],['cal','다행이에요… 정말 다행이에요… 제가 샀다면…','shock'],['alb','마에스트로 님은 샀을 거예요.']],
               [['cal','저 청색… 아름답지만, 남의 계좌라서 더 아름답군요.']]],
   megaSoldDodged:[[['alb','{n} 팔고 나서 {p} 떨어졌어요. 저 천재예요?'],['cal','알비나 양은… 신체파의 희망이랍니다.','big']]],
+  lev3:[[['cal','×{x}… 알비나 양, 붓에 물감을 세 배로 묻히는 셈이군요.'],['alb','많이 묻혀야 그림이 커져요.']]],
+  lev10:[[['cal','×{x}?! 알비나 양, 그건 제가 해도 말렸을 거랍니다!','shock'],['alb','마에스트로 님이 말리는 건 처음 봐요.']],
+         [['alb','{n}, 열 배로 샀어요.'],['cal','아아… 저 이제 차트를 못 보겠군요.','shock']]],
+  levWin:[[['alb','레버리지 정리했어요. 벌었어요.'],['cal','훌륭해요, 알비나 양! 이 붓질은 액자에 걸어야겠군요!','big']]],
+  levLose:[[['alb','레버리지 정리했어요. 잃었어요.','mad'],['cal','배율은 양날의 검이랍니다… 제 의체 팔처럼요.']]],
+  levMix:[[['cal','알비나 양, 그 종목엔 이미 ×{x} 포지션이 있답니다. 먼저 정리하고 오세요.']]],
+  levLiq:[[['alb','{n} ×{x}… 강제 청산당했어요.','mad'],['cal','………','shock'],['cal','청색이… 열 배로 쏟아졌군요…']],
+          [['cal','{n} 레버리지가… 증권사에 회수당했답니다.','shock'],['alb','다음엔 손절 일찍 할게요.','mad']]],
   newsLied:[[['alb','{o} 기사 믿고 {n} 샀는데… {p}예요.','mad'],['cal','신문도 가끔은 그림을 거꾸로 걸어 둔답니다…','shock']],
             [['cal','{o}… 그 신문이 그렇게 말했었죠. 분명히요.','shock'],['alb','다음부턴 별 개수부터 볼게요.','mad']],
             [['alb','마에스트로 님. {n} 기사, 거짓말이었어요.','mad'],['cal','아아… 도시에선 잉크마저 우리를 배신하는군요.']]],
@@ -1582,22 +1638,56 @@ function react(moves){
 }
 
 /* actions */
-function feeNote(f){G.feePaid=(G.feePaid||0)+f;if(!G.feeTalk&&G.feePaid>=3000){G.feeTalk=1;setTimeout(()=>say('feeOuch',{p:fmt(G.feePaid)+' 안'},true),1600)}}
+function feeNote(f){G.feePaid=(G.feePaid||0)+f;if(!G.feeTalk&&G.feePaid>=1500){G.feeTalk=1;setTimeout(()=>say('feeOuch',{p:fmt(G.feePaid)+' 안'},true),1600)}}
 function qty(){const v=Math.floor(Number(gq('qInput').value)||0);return Math.max(0,v)}
 function setQty(v){gq('qInput').value=Math.max(1,Math.floor(v));renderTrade()}
+let levX=1;
+function levOf(id){return G.lev&&G.lev[id]}
+function levVal(id,price){const L=levOf(id);if(!L)return 0;const p=price!=null?price:G.stocks.find(s=>s.id===id).price;return Math.max(0,L.q*L.avg*(1+L.x*(p/L.avg-1)))}
+function levTotal(){return G.lev?Object.keys(G.lev).reduce((a,id)=>a+levVal(id),0):0}
 function buy(){
-  const st=G.stocks[gSel],q=qty(),cost=q*st.price*(1+FEE);if(q<1)return;
+  const st=G.stocks[gSel],q=qty();if(q<1)return;
+  if(levX>1)return levBuy(st,q);
+  const fee=q*st.price*FEE_BUY,cost=q*st.price+fee;
   if(cost>G.cash){say('noCash',{},true);return}
-  const h=G.hold[st.id]||{q:0,avg:0};h.avg=(h.avg*h.q+cost)/(h.q+q);h.q+=q;G.hold[st.id]=h;G.cash-=cost;feeNote(q*st.price*FEE);
+  const h=G.hold[st.id]||{q:0,avg:0};h.avg=(h.avg*h.q+q*st.price)/(h.q+q);h.q+=q;G.hold[st.id]=h;G.cash-=cost;feeNote(fee);
   const before=G.cash+cost;G.lastTrade=G.round;tutEvent('buy');
   sfx('stamp');say(cost>=before*.7&&cost>=3000?'allIn':(stockChg(st)>=0?'buyUp':'buyDown'),{n:COS[gSel].name},true);save();renderAll();
 }
 function sell(){
-  const st=G.stocks[gSel],q=qty(),h=G.hold[st.id];if(!h||h.q<q||q<1)return;
-  G.cash+=q*st.price*(1-FEE);feeNote(q*st.price*FEE);h.q-=q;const win=st.price*(1-FEE)>=h.avg;if(!h.q)delete G.hold[st.id];
+  const st=G.stocks[gSel],q=qty();if(q<1)return;
+  if(levX>1)return levSell(st,q);
+  const h=G.hold[st.id];if(!h||h.q<q)return;
+  const fee=q*st.price*FEE_SELL;G.cash+=q*st.price-fee;feeNote(fee);h.q-=q;const win=st.price>=h.avg;if(!h.q)delete G.hold[st.id];
   G.sold=G.sold||{};if(!G.hold[st.id])G.sold[st.id]=G.round;G.lastTrade=G.round;
   sfx('chime');say(win?'sellWin':'sellLose',{n:COS[gSel].name},true);save();renderAll();
 }
+function levBuy(st,q){
+  G.lev=G.lev||{};const L=G.lev[st.id];
+  if(L&&L.x!==levX){say('levMix',{x:L.x},true);return}
+  const notional=q*st.price,fee=notional*levX*FEE_BUY,cost=notional+fee;
+  if(cost>G.cash){say('noCash',{},true);return}
+  if(L){const v=levVal(st.id);const nq=L.q+q;/* re-base: keep current equity, new avg = price */const eq=v+notional;L.avg=st.price;L.q=eq/st.price;}
+  else G.lev[st.id]={q,avg:st.price,x:levX};
+  G.cash-=cost;feeNote(fee);G.lastTrade=G.round;
+  sfx('bbam');shakeG();say(levX>=10?'lev10':'lev3',{n:COS[gSel].name,x:levX},true);save();renderAll();
+}
+function levSell(st,q){
+  const L=levOf(st.id);if(!L)return;
+  const frac=Math.min(1,q/L.q),v=levVal(st.id)*frac,fee=q*st.price*L.x*FEE_SELL;
+  const win=v>=L.q*L.avg*frac;G.cash+=Math.max(0,v-fee);feeNote(fee);L.q-=L.q*frac;if(L.q<1e-6)delete G.lev[st.id];
+  G.lastTrade=G.round;sfx('chime');say(win?'levWin':'levLose',{n:COS[gSel].name},true);save();renderAll();
+}
+function shakeG(){const g=gq('game');anim(g,[...Array(8)].map(()=>({transform:`translate(${(Math.random()*2-1)*6}px,${(Math.random()*2-1)*6}px)`})).concat([{transform:'none'}]),{duration:300,force:true})}
+function levCheck(){
+  if(!G.lev)return null;let hit=null;
+  Object.keys(G.lev).forEach(id=>{const L=G.lev[id],st=G.stocks.find(s=>s.id===id),r=1+L.x*(st.price/L.avg-1);
+    if(r<=.1){const rest=Math.max(0,L.q*L.avg*r);G.cash+=rest;delete G.lev[id];hit={id,x:L.x}}});
+  return hit;
+}
+function setLev(x){levX=x;document.querySelectorAll('#levRow button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.x===x));
+  gq('levRow').classList.toggle('on',x>1);gq('levHint').textContent=x>1?'수익도 손실도 '+x+'배 · 강제청산 주의':'일반 매매';
+  gq('buy').textContent=x>1?'매수 ×'+x:'매수';gq('sell').textContent=x>1?'청산':'매도';renderTrade()}
 function setTab(t){
   gTab=t;gq('tabChart').setAttribute('aria-selected',t==='chart');gq('tabNews').setAttribute('aria-selected',t==='news');
   gq('tabShop').setAttribute('aria-selected',t==='shop');
@@ -1624,8 +1714,8 @@ function onTick(){
   if(G.left<=0){
     const moves=tickMarket();const avg=moves.reduce((s,m)=>s+m.ch,0)/moves.length;
     if(moves.mega)megaFx(moves.mega);else{banner(avg>=0);sfx(avg>=0?'chime':'thud')}
-    const intr=addInterest(),mc=marginCheck();
-    setTimeout(()=>{if(mc)say('marginCall',{},true);else if(intr)say('interest',{},true);else react(moves)},900);
+    const intr=addInterest(),mc=marginCheck(),lq=levCheck();
+    setTimeout(()=>{if(lq)say('levLiq',{n:COS.find(c=>c.id===lq.id).name,x:lq.x},true);else if(mc)say('marginCall',{},true);else if(intr)say('interest',{},true);else react(moves)},900);
     setTimeout(helperTick,4200);
     dunCheck();
     setTimeout(()=>rogueCheck(moves),2600);
@@ -1648,8 +1738,8 @@ const SHOP=[
  {id:'x4',name:'4배속 시계',price:90000,desc:'T사 정품 시계. 네 배로 빨라집니다. 2배속 시계가 있어야 합니다.',req:'x2'}
 ];
 const LOTTO={
- small:{name:'뒷골목 즉석 복권',price:300,desc:'둥지 편의점 계산대 옆에 꽂혀 있는 흔한 복권.',tiers:[[.002,40000,'잭팟'],[.015,4000,'파시아'],[.05,1000,'모자'],[.12,300,'피']]},
- big:{name:'J사 잭팟 복권',price:3000,desc:'10구 카지노가 발행하는 고액 복권. 호구 전용이라는 소문이 있습니다.',tiers:[[.005,300000,'잭팟'],[.02,20000,'파시아'],[.06,6000,'모자'],[.10,3000,'피']]}
+ small:{name:'뒷골목 즉석 복권',price:300,desc:'둥지 편의점 계산대 옆에 꽂혀 있는 흔한 복권.',tiers:[[.0025,40000,'잭팟'],[.018,4000,'파시아'],[.06,1000,'모자'],[.17,300,'피']]},
+ big:{name:'J사 잭팟 복권',price:3000,desc:'10구 카지노가 발행하는 고액 복권. 호구 전용이라는 소문이 있습니다.',tiers:[[.005,300000,'잭팟'],[.025,20000,'파시아'],[.08,6000,'모자'],[.13,3000,'피']]}
 };
 const SYMS=['잭팟','파시아','모자','피','청색'];let rolling=false,lottoKind='small';
 function renderShop(){
@@ -1718,7 +1808,7 @@ function newRaceCard(){
   G.race=G.race||{n:1,hist:[[],[],[],[],[],[]]};
   const w=[0,1,2,3,4,5].map(()=>{const c=Math.random()<.3?0:Math.random()<.6?1:2;return {c,s:COND[c][1]*rnd(.8,1.25)}});
   const sum=w.reduce((a,b)=>a+b.s,0);
-  G.race.card=w.map(x=>({cond:x.c,p:x.s/sum,odds:Math.max(1.2,Math.round(.85/(x.s/sum)*10)/10)}));
+  G.race.card=w.map(x=>({cond:x.c,p:x.s/sum,odds:Math.max(1.2,Math.round(.93/(x.s/sum)*10)/10)}));
 }
 function renderRace(){
   if(!G.race||!G.race.card)newRaceCard();
@@ -2173,28 +2263,36 @@ const TUT=[
   {w:'cal',t:'여기가 차트예요. 양옆 화살표로 종목을 넘겨 볼 수 있죠. 빨간 캔들은 상승, 파란 캔들은…',el:'pChart'},
   {w:'alb',t:'마에스트로 님이 좋아하는 거요.',el:'pChart'},
   {w:'cal',t:'…하락이랍니다.',el:'pChart',f:'shock'},
-  {w:'cal',t:'수량을 정하고 매수나 매도를 누르면 거래가 됩니다. 사고팔 때마다 수수료 1.5%가 붙으니 너무 자주 손대진 말고요. 아무 종목이나 한번 1주 사 보세요.',el:'pTrade',act:'buy',hint:'매수 버튼을 눌러 보세요'},
+  {w:'cal',t:'차트 아래 띠에는 지금 보는 종목의 최신 뉴스가 흘러요. 누르면 뉴스 탭으로 가죠.',el:'ticker'},
+  {w:'cal',t:'수량을 정하고 매수나 매도를 누르면 거래가 됩니다. 수수료는 매수 0.02%, 매도 0.2%로 아주 조금이에요. 아무 종목이나 한번 1주 사 보세요.',el:'pTrade',act:'buy',hint:'매수 버튼을 눌러 보세요'},
   {w:'alb',t:'샀어요.'},
   {w:'cal',t:'훌륭해요, 알비나 양. 첫 붓질이군요.'},
+  {w:'cal',t:'배율을 ×3이나 ×10으로 바꾸면 레버리지 매수랍니다. 같은 돈으로 수익도 손실도 그 배수만큼 커지죠.',el:'levRow'},
+  {w:'cal',t:'다만 ×10이면 10%만 떨어져도 거의 전부 날아가요. 증권사가 강제로 정리해 버리죠.',el:'levRow',f:'shock'},
+  {w:'alb',t:'싼 주식을 열 배로 사면 재밌겠어요.',el:'levRow'},
   {w:'cal',t:'가진 주식이 없어도 \'공매도\'로 떨어질 종목에 걸 수 있답니다. 떨어지면 이득, 오르면… 손해죠.',el:'shortBtn'},
   {w:'alb',t:'마에스트로 님이 좋아하는 파란색으로 돈을 버는 거네요.',el:'shortBtn'},
   {w:'cal',t:'…드디어 청색이 우리를 구원하는군요.',el:'shortBtn',f:'big'},
-  {w:'cal',t:'뉴스 탭에는 도시 소식이 올라온답니다. 호재가 나면 오르고, 악재가 나면 내리는 경향이 있죠.',el:'tabNews'},
-  {w:'cal',t:'다만 신문마다 믿을 만한 정도가 달라요. 별이 셋이면 대체로 맞고, 별 하나짜리는… 거꾸로 가는 일도 흔하답니다.',el:'tabNews'},
-  {w:'alb',t:'거짓말하는 신문도 있어요?',el:'tabNews'},
-  {w:'cal',t:'이 도시의 잉크는 피만큼이나 싸니까요.',el:'tabNews'},
-  {w:'cal',t:'특히 노란색 \'소문\' 기사는 큰 사건의 전조일 수 있어요. 물론 가짜 소문도 섞여 있지만요.',el:'tabNews'},
-  {w:'alb',t:'소문 잘 볼게요.',el:'tabNews'},
-  {w:'cal',t:'상점에서는 시간을 빠르게 하는 시계와 복권을, 경마장에서는 시쭈니에게 돈을 걸 수 있답니다.',el:'tabShop'},
-  {w:'alb',t:'시쭈니 귀여워요.',el:'tabRace'},
-  {w:'cal',t:'그리고… 가장 중요한 곳이죠. 빚 장부랍니다.',el:'tabDebt'},
-  {w:'alb',t:'마에스트로 님이 진 빚이요.',el:'tabDebt'},
-  {w:'cal',t:'…우리가 진 빚이라고 해 두죠.',el:'tabDebt'},
-  {w:'cal',t:'아비들에게 진 빚은 뤼엔, 시오미 요루, 마티아스, 발렌치나 순서대로 갚아야 한답니다. 다른 곳 빚에는 10회차마다 이자도 붙고요.'},
-  {w:'cal',t:'아비들은 가끔 직접 찾아와서 기한을 정하고 독촉할 거예요. 기한 안에 못 갚으면… 있는 돈까지 뜯어 가겠죠.'},
-  {w:'alb',t:'발렌치나 님은 무서워요.'},
-  {w:'cal',t:'정말 빈털터리가 되면… 장부 아래 \'구걸하기\'도 있답니다. 대부분은 쫓겨나지만, 가끔은 돈을 던져 주죠. 대신 빚이 더 늘어나고요.',el:'tabDebt'},
-  {w:'alb',t:'마에스트로 님이 구걸해요.',f:'mad'},
+  {w:'cal',t:'오른쪽 목록에는 종목마다 내 보유량과 공매도, 레버리지가 표시되고, 새 뉴스가 있으면 ▲▼ 표시가 붙어요.',el:'list'},
+  {w:'cal',t:'여기가 뉴스 탭이에요. 호재가 나면 오르고, 악재가 나면 내리는 경향이 있죠.',tab:'news',el:'newsList'},
+  {w:'cal',t:'다만 신문마다 믿을 만한 정도가 달라요. 별이 셋이면 대체로 맞고, 별 하나짜리는… 거꾸로 가는 일도 흔하답니다.',tab:'news',el:'newsList'},
+  {w:'cal',t:'바쁠 땐 위쪽 \'내 종목\' 버튼으로 가진 종목 뉴스만 골라 보세요.',tab:'news',el:'chips'},
+  {w:'alb',t:'노란 \'소문\'은요?',tab:'news',el:'newsList'},
+  {w:'cal',t:'큰 사건의 전조일 수 있어요. 물론 가짜 소문도 섞여 있지만요.',tab:'news',el:'newsList'},
+  {w:'cal',t:'상점에서는 시간을 빠르게 하는 시계를 살 수 있답니다.',tab:'shop',el:'shopItems'},
+  {w:'cal',t:'옆에는 복권도 있죠. 회색 부분을 문질러 긁는 방식이에요.',tab:'shop',el:'scratchCard'},
+  {w:'alb',t:'긁는 거 좋아요.',tab:'shop',el:'scratchCard'},
+  {w:'cal',t:'경마장에서는 시쭈니에게 돈을 걸 수 있답니다. 컨디션이 좋을수록 잘 달리지만 배당은 낮아요.',tab:'race',el:'horseCards'},
+  {w:'alb',t:'시쭈니 귀여워요.',tab:'race',el:'horseCards'},
+  {w:'cal',t:'그리고… 가장 중요한 곳이죠. 빚 장부랍니다.',tab:'debt',el:'debtHead'},
+  {w:'alb',t:'마에스트로 님이 진 빚이요.',tab:'debt',el:'debtHead'},
+  {w:'cal',t:'…우리가 진 빚이라고 해 두죠.',tab:'debt',el:'debtHead'},
+  {w:'cal',t:'아비들에게 진 빚은 뤼엔, 시오미 요루, 마티아스, 발렌치나 순서대로 갚아야 한답니다.',tab:'debt',el:'abiDebts'},
+  {w:'cal',t:'다른 곳 빚에는 10회차마다 이자 3%가 붙어요. 갚을 곳을 고르고 금액을 넣어 상환하면 돼요.',tab:'debt',el:'etcDebts'},
+  {w:'cal',t:'아비들은 가끔 직접 찾아와서 기한을 정하고 독촉할 거예요. 기한 안에 못 갚으면… 있는 돈까지 뜯어 가겠죠.',tab:'debt',el:'abiDebts'},
+  {w:'alb',t:'발렌치나 님은 무서워요.',tab:'debt',el:'abiDebts'},
+  {w:'cal',t:'정말 빈털터리가 되면 여기 \'구걸하기\'도 있답니다. 대부분 쫓겨나지만, 가끔은 돈을 던져 주죠. 대신 빚이 더 늘어나고요.',tab:'debt',el:'begBox'},
+  {w:'alb',t:'마에스트로 님이 구걸해요.',tab:'debt',el:'begBox',f:'mad'},
   {w:'alb',t:'다 갚으면 어떻게 돼요?'},
   {w:'cal',t:'아비들도… 어쩌면 우리 편이 되어 줄지도 모르죠.'},
   {w:'alb',t:'그럼 시작해요. 파시아, 일하자.'}
@@ -2211,11 +2309,11 @@ function tutPlace(id){
 function runTutorial(){
   return new Promise(res=>{
     G.paused=true;const tut=gq('tut');tut.hidden=false;let k=0;
-    const show=()=>{const s=TUT[k];if(s.el==='pChart'||s.el==='pTrade')setTab('chart');tutPlace(s.el);
+    const show=()=>{const s=TUT[k];if(s.tab)setTab(s.tab);else if(s.el==='pChart'||s.el==='pTrade'||!s.el)setTab('chart');requestAnimationFrame(()=>tutPlace(s.el));
       gq('tutIcon').src=spkIcon(s.w,s.f);gq('tutName').textContent=SPK[s.w].n;gq('tutName').style.color=SPK[s.w].c;gq('tutText').textContent=s.t;
       gq('tutHint').textContent=s.hint||'';gq('tutNext').hidden=!!s.act;tutWait=s.act||null;
       anim(gq('tutBox'),[{opacity:.3,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:220,force:true});sfx(s.w==='alb'?'blipAlb':'blipCal')};
-    const next=()=>{k++;if(k>=TUT.length){tut.hidden=true;gq('tutNext').onclick=null;tutWait=null;G.paused=false;G.tutDone=true;save();res();return}show()};
+    const next=()=>{k++;if(k>=TUT.length){setTab('chart');tut.hidden=true;gq('tutNext').onclick=null;tutWait=null;G.paused=false;G.tutDone=true;save();res();return}show()};
     gq('tutNext').onclick=next;tutDone=next;show();
   });
 }
@@ -2230,21 +2328,21 @@ function shortSell(){
   const val=q*st.price,eq=totalAsset();
   if(eq<=0||shortLiab()+val>eq){say('shortLimit',{},true);return}
   const s=G.short[st.id]||{q:0,avg:0};s.avg=(s.avg*s.q+val)/(s.q+q);s.q+=q;G.short[st.id]=s;
-  G.cash+=Math.floor(val*(1-FEE));feeNote(val*FEE);G.lastTrade=G.round;sfx('stamp');
+  G.cash+=Math.floor(val*(1-FEE_SELL));feeNote(val*FEE_SELL);G.lastTrade=G.round;sfx('stamp');
   say('shortOpen',{n:COS[gSel].name},true);save();renderAll();
 }
 function cover(){
   G.short=G.short||{};const st=G.stocks[gSel],s=G.short[st.id];if(!s)return;
-  const q=Math.min(qty(),s.q),cost=q*st.price*(1+FEE);if(q<1)return;
+  const q=Math.min(qty(),s.q),cost=q*st.price*(1+FEE_BUY);if(q<1)return;
   if(cost>G.cash){say('noCash',{},true);return}
-  G.cash-=cost;feeNote(q*st.price*FEE);const win=st.price*(1+FEE)<=s.avg;s.q-=q;if(!s.q)delete G.short[st.id];G.lastTrade=G.round;
+  G.cash-=cost;feeNote(q*st.price*FEE_BUY);const win=st.price<=s.avg;s.q-=q;if(!s.q)delete G.short[st.id];G.lastTrade=G.round;
   sfx('chime');say(win?'coverWin':'coverLose',{n:COS[gSel].name},true);save();renderAll();
 }
 function marginCheck(){
   const L=shortLiab();if(!L)return false;
   if(totalAsset()>=L*.25)return false;
   // forced liquidation: sell longs, then cover shorts; shortfall becomes a debt
-  G.stocks.forEach(st=>{const h=G.hold[st.id];if(h){G.cash+=h.q*st.price;delete G.hold[st.id]}});
+  G.stocks.forEach(st=>{const h=G.hold[st.id];if(h){G.cash+=h.q*st.price;delete G.hold[st.id]}});G.cash+=levTotal();G.lev={};
   let cost=Math.round(shortLiab());G.short={};
   if(cost>G.cash){const lack=cost-G.cash;G.cash=0;G.debt.margin=(G.debt.margin||0)+lack;G.debtMax.margin=(G.debtMax.margin||0)+lack}else G.cash-=cost;
   return true;
@@ -2423,11 +2521,20 @@ gq('lottoBuy').addEventListener('click',drawLotto);
  const up=()=>{scrDown=false;if(scr){scr._lx=null;if(ticket&&!ticket.done)checkScratch()}};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
  gq('autoScratch').addEventListener('click',()=>{if(ticket&&!ticket.done)revealTicket()});}
 gq('qMinus').addEventListener('click',()=>setQty(qty()-1));
-gq('begBtns').addEventListener('click',e=>{const b=e.target.closest('[data-beg]');if(b&&!b.disabled){sfx('stamp');queueEvent(()=>beg(b.dataset.beg))}});
+let begWho=null;
+gq('begBtns').addEventListener('click',e=>{const b=e.target.closest('[data-beg]');if(!b||b.disabled)return;begWho=b.dataset.beg;const B=BEG[begWho],n=SPK[begWho].n;
+  gq('begAskImg').src=ASSETS[begWho+'Icon'];gq('begAskT').textContent='정말 '+n+'에게 구걸할까요?';
+  gq('begAskP').innerHTML='성공 확률은 대략 '+Math.round((B.p+(G.begFail||0)*.05)*100)+'%예요. 실패하면 3회차 동안 다시 못 하고,<br>성공하면 돈을 받는 대신 <b style="color:var(--rise)">받은 돈의 1.6배</b>가 '+n+'의 빚에 더해져요.';
+  gq('begAsk').hidden=false;sfx('blipCal')});
+gq('begNo').addEventListener('click',()=>{gq('begAsk').hidden=true;begWho=null});
+gq('begYes').addEventListener('click',()=>{gq('begAsk').hidden=true;if(begWho){const w=begWho;begWho=null;sfx('stamp');queueEvent(()=>beg(w))}});
+document.querySelectorAll('#levRow button').forEach(b=>b.addEventListener('click',()=>{setLev(+b.dataset.x);sfx('blipAlb')}));
+gq('ticker').addEventListener('click',()=>setTab('news'));
+['viewport','stage','game','world'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('scroll',()=>{if(e.scrollTop||e.scrollLeft){e.scrollTop=0;e.scrollLeft=0}})});
 gq('qm10').addEventListener('click',()=>setQty(qty()-10));
 gq('qPlus').addEventListener('click',()=>setQty(qty()+1));
 gq('q10').addEventListener('click',()=>setQty(qty()+10));
-gq('qMax').addEventListener('click',()=>{const st=G.stocks[gSel],h=G.hold[st.id];const canBuy=Math.floor(G.cash/(st.price*(1+FEE)));setQty(Math.max(canBuy,h?h.q:0,1))});
+gq('qMax').addEventListener('click',()=>{const st=G.stocks[gSel],h=G.hold[st.id];const canBuy=Math.floor(G.cash/(st.price*(1+(levX>1?levX:1)*FEE_BUY)));const L=levOf(st.id);setQty(Math.max(canBuy,levX>1?(L?Math.floor(L.q):0):(h?h.q:0),1))});
 gq('qInput').addEventListener('input',renderTrade);
 gq('buy').addEventListener('click',buy);
 gq('shortBtn').addEventListener('click',shortSell);
