@@ -436,7 +436,7 @@ html,body{height:100%;margin:0;background:var(--ink);overflow:hidden;color:var(-
 .chip{font:600 11px/1 var(--font-ui);padding:5px 7px;letter-spacing:.06em;white-space:nowrap}.chip.ok{background:var(--gold);color:var(--ink)}.chip.lock{border:1px solid rgba(236,230,221,.25);color:var(--bone-dim)}
 #repBox{margin-top:auto;padding-top:10px;border-top:1px solid rgba(236,230,221,.1);display:flex;flex-direction:column;gap:8px}
 #repBox .bp{display:flex;justify-content:space-between;font:400 13px/1.2 var(--font-ui)}#repBox .bp span{color:var(--bone-dim)}#repBox .bp b{font-variant-numeric:tabular-nums}
-#repBox .qty{margin:0}#repBox .lbtn{height:46px}
+#repBox .qty{margin:0}#repLock{display:block;font:600 11px/1.4 var(--font-ui);color:#8fb0ff}#repLock[hidden]{display:none}#repBox .lbtn{height:46px}
 #scene{position:absolute;inset:0;z-index:9}
 #scene[hidden],#tut[hidden]{display:none}
 #scene .sbg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgb(40,34,46),rgb(8,7,10))}
@@ -730,7 +730,7 @@ html,body{height:100%;margin:0;background:var(--ink);overflow:hidden;color:var(-
           <div class="dcol"><h4>거미집 아비들 · 순서대로 상환</h4><div id="abiDebts"></div>
             <div id="begBox"><div class="bp"><span>최후의 수단 · 구걸하기</span><b id="begState"></b></div><div id="begBtns"></div></div></div>
           <div class="dcol"><h4>그 밖의 빚 · 10회차마다 이자 3%</h4><div id="etcDebts"></div>
-            <div id="repBox"><div class="bp"><span>상환처</span><b id="repWho">갚을 곳을 고르세요</b></div><div class="bp"><span>남은 금액</span><b id="repLeft">—</b></div>
+            <div id="repBox"><div class="bp"><span>상환처</span><b id="repWho">갚을 곳을 고르세요</b></div><div class="bp"><span>남은 금액</span><b id="repLeft">—</b></div><div class="bp"><span>상환 가능 현금</span><b id="repFree">—</b></div><small id="repLock" hidden></small>
               <div class="qty"><input id="repInput" type="number" min="1" step="1000" value="1000" inputmode="numeric" aria-label="상환 금액"><button type="button" class="q" data-rep="1000">+1천</button><button type="button" class="q" data-rep="10000">+1만</button><button type="button" class="q" data-rep="all">전액</button></div>
               <button type="button" id="repGo" class="lbtn">상환하기</button></div>
           </div>
@@ -1651,6 +1651,8 @@ const TALK={
   megaDodged:[[['alb','{n}가 {p} 떨어졌어요. 우리는 안 샀어요.'],['cal','다행이에요… 정말 다행이에요… 제가 샀다면…','shock'],['alb','마에스트로 님은 샀을 거예요.']],
               [['cal','저 청색… 아름답지만, 남의 계좌라서 더 아름답군요.']]],
   megaSoldDodged:[[['alb','{n} 팔고 나서 {p} 떨어졌어요. 저 천재예요?'],['cal','알비나 양은… 신체파의 희망이랍니다.','big']]],
+  shortLockRepay:[[['alb','빚 갚으려는데 안 된대요.','mad'],['cal','공매도로 판 돈은 언젠가 되사서 돌려줘야 하는 돈이랍니다, 알비나 양. 빚으로 빚을 갚을 순 없죠.']],
+                  [['cal','알비나 양, 그건 증권사에 빌린 주식을 판 돈이랍니다. 환매수부터 하고 오세요.'],['alb','빚을 빚으로 못 갚는 거네요.']]],
   lev3:[[['cal','×{x}… 알비나 양, 붓에 물감을 세 배로 묻히는 셈이군요.'],['alb','많이 묻혀야 그림이 커져요.']]],
   lev10:[[['cal','×{x}?! 알비나 양, 그건 제가 해도 말렸을 거랍니다!','shock'],['alb','마에스트로 님이 말리는 건 처음 봐요.']],
          [['alb','{n}, 열 배로 샀어요.'],['cal','아아… 저 이제 차트를 못 보겠군요.','shock']]],
@@ -2066,12 +2068,13 @@ function renderDebt(){
   const d=ALL_DEBT.find(x=>x.id===debtSel);
   gq('repWho').textContent=d?d.name+' · '+d.role:'갚을 곳을 고르세요';
   gq('repLeft').textContent=d?fmt(G.debt[d.id])+' 안':'—';
-  const a=repAmt();gq('repGo').disabled=!d||a<1||a>G.cash||!G.debt[d.id];
+  const a=repAmt(),fc=freeCash(),lk=Math.max(0,Math.floor(G.cash-fc));gq('repGo').disabled=!d||a<1||a>fc||!G.debt[d.id];
+  gq('repFree').textContent=fmt(fc)+' 안';gq('repLock').hidden=!lk;gq('repLock').textContent='공매도 대금 '+fmt(lk)+' 안은 상환에 쓸 수 없어요 · 환매수로 정리하면 풀려요';
   renderBeg();
 }
 function repAmt(){return Math.max(0,Math.floor(Number(gq('repInput').value)||0))}
 async function repay(){
-  const d=ALL_DEBT.find(x=>x.id===debtSel);if(!d)return;let a=Math.min(repAmt(),G.cash,G.debt[d.id]);if(a<1)return;
+  const d=ALL_DEBT.find(x=>x.id===debtSel);if(!d)return;if(repAmt()>freeCash()&&G.cash>=repAmt()){say('shortLockRepay',{},true);return}let a=Math.min(repAmt(),freeCash(),G.debt[d.id]);if(a<1)return;
   G.cash-=a;G.debt[d.id]-=a;dunPaid(d.id,a);sfx('stamp');save();renderTop();
   const cleared=!G.debt[d.id];
   if(!cleared){say('repayPart',{n:d.name},true);renderDebt();return}
@@ -2403,6 +2406,7 @@ const TUT=[
   {w:'cal',t:'가진 주식이 없어도 \'공매도\'로 떨어질 종목에 걸 수 있답니다. 떨어지면 이득, 오르면… 손해죠.',el:'shortBtn'},
   {w:'alb',t:'마에스트로 님이 좋아하는 파란색으로 돈을 버는 거네요.',el:'shortBtn'},
   {w:'cal',t:'…드디어 청색이 우리를 구원하는군요.',el:'shortBtn',f:'big'},
+  {w:'cal',t:'다만 공매도로 판 돈은 빌린 주식 값이라, 환매수로 정리하기 전엔 빚 갚는 데 쓸 수 없어요. 빚으로 빚을 갚을 순 없으니까요.',el:'shortBtn'},
   {w:'cal',t:'오른쪽 목록에는 종목마다 내 보유량과 공매도, 레버리지가 표시되고, 새 뉴스가 있으면 ▲▼ 표시가 붙어요.',el:'list'},
   {w:'cal',t:'여기가 뉴스 탭이에요. 호재가 나면 오르고, 악재가 나면 내리는 경향이 있죠.',tab:'news',el:'newsList'},
   {w:'cal',t:'다만 신문마다 믿을 만한 정도가 달라요. 별이 셋이면 대체로 맞고, 별 하나짜리는… 거꾸로 가는 일도 흔하답니다.',tab:'news',el:'newsList'},
@@ -2452,6 +2456,7 @@ function tutEvent(name){if(tutWait===name){tutWait=null;setTimeout(()=>tutDone&&
 
 
 /* ================= short selling ================= */
+function freeCash(){return Math.max(0,G.cash-shortLiab())}
 function shortLiab(){return G.stocks.reduce((s,st)=>s+((G.short&&G.short[st.id])?G.short[st.id].q*st.price:0),0)}
 function shortSell(){
   G.short=G.short||{};const st=G.stocks[gSel],q=qty();if(q<1)return;
@@ -2543,7 +2548,7 @@ function dunCheck(){
 async function dunDue(){
   const D=G.dun;if(!D)return;const rem=D.amt-D.paid;if(rem<=0||!G.debt[D.who]){G.dun=null;return}
   const pay=Math.min(rem,G.debt[D.who]);
-  const c=await sceneChoice(D.who,fillT(DUN[D.who].due,{r:fmt(pay)+' 안'}),[{label:'갚는다 ('+fmt(pay)+' 안)',off:G.cash<pay},{label:'돈이 없어요…'}],SPK[D.who].n+' · 상환 기한');
+  const c=await sceneChoice(D.who,fillT(DUN[D.who].due,{r:fmt(pay)+' 안'}),[{label:'갚는다 ('+fmt(pay)+' 안)'+(freeCash()<pay&&G.cash>=pay?' · 공매도 대금은 못 씀':''),off:freeCash()<pay},{label:'돈이 없어요…'}],SPK[D.who].n+' · 상환 기한');
   if(c===0){G.cash-=pay;G.debt[D.who]-=pay;G.dun=null;G.nextDun=G.round+14+Math.floor(Math.random()*8);save();renderAll();
     await sceneChoice(D.who,fillT(DUN[D.who].paid,{}),null,SPK[D.who].n+' · 상환 완료');
     if(!G.debt[D.who]){G.helpers.push(D.who);save();await playScene(D.who,SCENES[D.who])}
@@ -2633,7 +2638,7 @@ gq('tabShop').addEventListener('click',()=>setTab('shop'));
 gq('tabRace').addEventListener('click',()=>setTab('race'));
 gq('tabDebt').addEventListener('click',()=>setTab('debt'));
 gq('pDebt').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(b){debtSel=b.dataset.d;gq('repInput').value=Math.min(G.cash,G.debt[debtSel]);renderDebt();return}
-  const q=e.target.closest('[data-rep]');if(q){const v=q.dataset.rep;gq('repInput').value=v==='all'?Math.min(G.cash,debtSel?G.debt[debtSel]:0):repAmt()+(+v);renderDebt()}});
+  const q=e.target.closest('[data-rep]');if(q){const v=q.dataset.rep;gq('repInput').value=v==='all'?Math.min(Math.floor(freeCash()),debtSel?G.debt[debtSel]:0):repAmt()+(+v);renderDebt()}});
 gq('repInput').addEventListener('input',renderDebt);
 gq('repGo').addEventListener('click',repay);
 for(let i=0;i<6;i++)gq('run'+i).firstElementChild.src=ASSETS.horse;
