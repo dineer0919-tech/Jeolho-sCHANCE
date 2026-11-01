@@ -1266,13 +1266,11 @@ const OUTLET_REL={'도시 일보':.9,'날개 동향 리포트':.84,'해결사 �
 function relStars(o){const r=OUTLET_REL[o];if(r==null)return '';const n=r>=.75?3:r>=.5?2:1;return ' <span class="rel r'+n+'" title="신뢰도">'+'★'.repeat(n)+'☆'.repeat(3-n)+'</span>'}
 const FEE_BUY=.0002,FEE_SELL=.002;
 let pendingDiff=null,userPaused=false,proAbort=false;
-const HC={curseP:.3,curseLo:.2,curseHi:.55,swing:.06,mega:.04,rumorReal:.55,interest:.04,liq:.1,rogueP:.3,rogueIv0:6,rogueIv1:7,rogueLo:.15,rogueHi:.35,startCash:20000,debtMul:1.2,
-  dunMax:2,dunFr0:.08,dunFr1:.12,dunDue0:6,dunDue1:3,dunIv0:7,dunIv1:6,dunFirst:12,dunTake:.05,dunPen:.15,begMul:.5,helpIv0:9,helpIv1:7,w3:.18,rel3:.88,rel2:.58,rel1:.25};
 function HARD(){try{return !!G&&G.diff==='hard'}catch(e){return false}}
-function REL_H(o){return {'도시 일보':HC.rel3,'날개 동향 리포트':HC.rel3-.05,'해결사 협회 공보':HC.rel2,'둥지 경제신문':HC.rel2-.13,'뒷골목 소식지':HC.rel1}[o]}
-function OUT_W_H(o){const r=(1-2*HC.w3)/3;return o==='도시 일보'||o==='날개 동향 리포트'?HC.w3:r}
-function pickOutlet(){if(!HARD())return OUTLETS[Math.floor(Math.random()*OUTLETS.length)];let r=Math.random(),acc=0;for(const o of OUTLETS){acc+=OUT_W_H(o);if(r<acc)return o}return '뒷골목 소식지'}
-function relOf(o){return HARD()?REL_H(o):OUTLET_REL[o]}
+const REL_HARD={'도시 일보':.7,'날개 동향 리포트':.65,'해결사 협회 공보':.4,'둥지 경제신문':.3,'뒷골목 소식지':.15};
+const OUT_W_HARD={'도시 일보':.03,'날개 동향 리포트':.03,'해결사 협회 공보':.3,'둥지 경제신문':.32,'뒷골목 소식지':.32};
+function pickOutlet(){if(!HARD())return OUTLETS[Math.floor(Math.random()*OUTLETS.length)];let r=Math.random(),acc=0;for(const o of OUTLETS){acc+=OUT_W_HARD[o];if(r<acc)return o}return '뒷골목 소식지'}
+function relOf(o){return HARD()?REL_HARD[o]:OUTLET_REL[o]}
 function cfill(t,name){return t.replace(/\{c(은|이|을|와|로)?\}/g,(m,p)=>name+(!p?'':p==='은'?josa(name,'은','는'):p==='이'?josa(name,'이','가'):p==='을'?josa(name,'을','를'):p==='와'?josa(name,'과','와'):josa(name,'으로','로')))}
 const GEN={pos:[
   ['{c}, 분기 실적 \'역대 최고\' 발표','시장 예상치를 크게 웃돌았다. 경영진은 \'이제 시작일 뿐\'이라며 자신감을 드러냈다.'],
@@ -1446,7 +1444,7 @@ function newGame(){
     for(let i=0;i<18;i++){const o=p;const ch=gauss()*c.vol*.5+(c.id==='N'?-.04:0);p=Math.max(5,o*(1+ch));hist.push(candle(o,p,c.vol))}
     return {id:c.id,price:p,trend:0,trendLeft:0,hist}});
   G={round:1,cash:30000,hold:{N:{q:30,avg:1980}},stocks,news:[],left:TICK,seq:0,items:{x2:false,x4:false},speed:1,lotto:[],tutDone:false,short:{},diff:pendingDiff||'easy'};initDebt();
-  if(G.diff==='hard'){G.cash=HC.startCash;Object.keys(G.debt).forEach(k=>{G.debt[k]=Math.round(G.debt[k]*HC.debtMul);G.debtMax[k]=Math.round(G.debtMax[k]*HC.debtMul)})}
+  if(G.diff==='hard'){G.cash=15000;Object.keys(G.debt).forEach(k=>{G.debt[k]=Math.round(G.debt[k]*1.5);G.debtMax[k]=Math.round(G.debtMax[k]*1.5)})}
   makeNews(3,['N']);
 }
 function candle(o,c,vol){const hi=Math.max(o,c)*(1+Math.abs(gauss())*vol*.18),lo=Math.min(o,c)*(1-Math.abs(gauss())*vol*.18);return {o,c,h:hi,l:lo}}
@@ -1499,10 +1497,10 @@ function tickMarket(){
     let ch=gauss()*c.vol*.55;
     if(st.trendLeft>0){ch+=st.trend*c.vol*rnd(.75,1.4);st.trendLeft--}
     if(G.macro&&G.macro.left>0)ch+=G.macro.dir*c.vol*rnd(.2,.6);
-    if(Math.random()<(HARD()?HC.swing:.04))ch+=(Math.random()<.5?-1:1)*c.vol*2.2;
+    if(Math.random()<(HARD()?.09:.04))ch+=(Math.random()<.5?-1:1)*c.vol*2.2;
     if(HARD()){const own=(G.hold[c.id]&&G.hold[c.id].q)||(G.lev&&G.lev[c.id]),sh=G.short&&G.short[c.id];
-      if(own&&Math.random()<HC.curseP)ch-=c.vol*rnd(HC.curseLo,HC.curseHi);
-      if(sh&&Math.random()<HC.curseP)ch+=c.vol*rnd(HC.curseLo,HC.curseHi);
+      if(own&&Math.random()<.5)ch-=c.vol*rnd(.3,.7);
+      if(sh&&Math.random()<.5)ch+=c.vol*rnd(.3,.7);
       if(!own&&!sh)ch+=( (c.p-o)/c.p )*.03;}
     else ch+=( (c.p-o)/c.p )*.03;
     ch=Math.max(-.32,Math.min(.32,ch));
@@ -1524,13 +1522,13 @@ function tickMarket(){
     if(p.real){const [h,b]=BREAK[p.dir>0?'pos':'neg'][Math.floor(Math.random()*3)];addSpecial('break',p.id,p.dir,h,b)}
     else addSpecial('fake',p.id,-p.dir,'[해명] '+COS[i].name+' "소문은 사실무근"','회사 측이 공식 입장을 내고 진화에 나섰다. 소문을 믿고 움직인 투자자들만 머쓱해졌다.')});
   // pure luck: a mega move with no warning
-  if(!mega&&!fire.length&&Math.random()<(HARD()?HC.mega:.015)){const i=Math.floor(Math.random()*COS.length),st=G.stocks[i],dir=Math.random()<.5?1:-1,h=st.hist[st.hist.length-1];
+  if(!mega&&!fire.length&&Math.random()<(HARD()?.07:.015)){const i=Math.floor(Math.random()*COS.length),st=G.stocks[i],dir=Math.random()<.5?1:-1,h=st.hist[st.hist.length-1];
     const o=h.o,ch=dir>0?rnd(.5,1.0):-rnd(.5,.85);st.price=Math.max(5,o*(1+ch));st.hist[st.hist.length-1]=candle(o,st.price,COS[i].vol);moves[i].ch=ch;mega={i,ch};
     const [hh,bb]=BREAK[dir>0?'pos':'neg'][Math.floor(Math.random()*3)];addSpecial('break',COS[i].id,dir,hh,bb)}
   // follow-up rumor the round before an event fires
   G.pending.forEach(p=>{if(p.at===G.round&&!p.second&&Math.random()<.7){p.second=true;postRumor(p)}});
   // schedule a new rumored event
-  if(!G.pending.length&&Math.random()<.13){const c=COS[Math.floor(Math.random()*COS.length)],p={id:c.id,dir:Math.random()<.5?1:-1,at:G.round+1+Math.floor(Math.random()*2),real:Math.random()<(HARD()?HC.rumorReal:.75)};G.pending.push(p);postRumor(p);moves.rumor=COS.indexOf(c)}
+  if(!G.pending.length&&Math.random()<.13){const c=COS[Math.floor(Math.random()*COS.length)],p={id:c.id,dir:Math.random()<.5?1:-1,at:G.round+1+Math.floor(Math.random()*2),real:Math.random()<(HARD()?.45:.75)};G.pending.push(p);postRumor(p);moves.rumor=COS.indexOf(c)}
   pruneNews();moves.mega=mega;moves.fake=fakeI;
   return moves;
 }
@@ -1880,7 +1878,7 @@ function shakeG(){const g=gq('game');anim(g,[...Array(8)].map(()=>({transform:`t
 function levCheck(){
   if(!G.lev)return null;let hit=null;
   Object.keys(G.lev).forEach(id=>{const L=G.lev[id],st=G.stocks.find(s=>s.id===id),r=1+L.x*(st.price/L.avg-1);
-    if(r<=(HARD()?HC.liq:.1)){const rest=Math.max(0,L.q*L.avg*r);G.cash+=rest;delete G.lev[id];hit={id,x:L.x}}});
+    if(r<=(HARD()?.3:.1)){const rest=Math.max(0,L.q*L.avg*r);G.cash+=rest;delete G.lev[id];hit={id,x:L.x}}});
   return hit;
 }
 function setLev(x){levX=x;document.querySelectorAll('#levRow button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.x===x));
@@ -2152,7 +2150,7 @@ async function repay(){
 }
 function addInterest(){
   if(G.round%10!==0)return false;let any=false;
-  ETC_DEBT.forEach(d=>{if(G.debt[d.id]>0){const add=Math.ceil(G.debt[d.id]*(HARD()?HC.interest:.03));G.debt[d.id]+=add;G.debtMax[d.id]+=add;any=true}});
+  ETC_DEBT.forEach(d=>{if(G.debt[d.id]>0){const add=Math.ceil(G.debt[d.id]*(HARD()?.06:.03));G.debt[d.id]+=add;G.debtMax[d.id]+=add;any=true}});
   return any;
 }
 
@@ -2387,7 +2385,7 @@ function helperTick(){
   if(!G||G.paused||busyEvent||!G.helpers||!G.helpers.length)return;
   if(G.nextHelp==null)G.nextHelp=G.round+3;
   if(G.round<G.nextHelp||Math.random()>.4)return;
-  G.nextHelp=G.round+(HARD()?HC.helpIv0:5)+Math.floor(Math.random()*(HARD()?HC.helpIv1:5));
+  G.nextHelp=G.round+(HARD()?9:5)+Math.floor(Math.random()*(HARD()?7:5));
   const who=G.helpers[Math.floor(Math.random()*G.helpers.length)];
   queueEvent(()=>helperVisit(who));
 }
@@ -2443,7 +2441,7 @@ function renderBeg(){const st=begState(),ok=st==='지금 가능';gq('begState').
   gq('begBtns').innerHTML=ABI_DEBT.map(d=>`<button type="button" data-beg="${d.id}" ${!ok||!G.debt[d.id]?'disabled':''} title="${G.debt[d.id]?'':'이미 다 갚은 상대'}"><img src="${ASSETS[d.id+'Icon']}" alt="">${SPK[d.id].n.split(' ').pop()}</button>`).join('')}
 async function beg(who){
   if(begState()!=='지금 가능'||!G.debt[who])return;const B=BEG[who];
-  G.begFail=G.begFail||0;const ok=Math.random()<(B.p+G.begFail*.05)*(HARD()?HC.begMul:1);
+  G.begFail=G.begFail||0;const ok=Math.random()<(B.p+G.begFail*.05)*(HARD()?.5:1);
   if(!ok){G.begFail++;G.begNext=G.round+3;save();
     await sceneChoice(who,B.intro.concat(B.fail[Math.floor(Math.random()*B.fail.length)]),null,SPK[who].n+' · 구걸 실패');renderAll();return}
   G.begFail=0;G.begNext=G.round+8;
@@ -2603,16 +2601,16 @@ function dunCheck(){
   if(!G.tutDone||!G.debt)return;
   const L=duns();
   L.slice().forEach(D=>{if(!G.debt[D.who]){dunRemove(D);return}if(G.round>=D.due&&!D.q){D.q=1;queueEvent(()=>dunDue(D))}});
-  const max=HARD()?HC.dunMax:1;if(duns().length>=max)return;
-  if(G.nextDun==null)G.nextDun=G.round+(HARD()?HC.dunFirst:8);
+  const max=HARD()?3:1;if(duns().length>=max)return;
+  if(G.nextDun==null)G.nextDun=G.round+(HARD()?5:8);
   if(G.round<G.nextDun)return;
   const open=ABI_DEBT.filter(d=>G.debt[d.id]>0&&!duns().some(x=>x.who===d.id));if(!open.length)return;
   const d=Math.random()<.65?open[0]:open[Math.floor(Math.random()*open.length)];
-  const fr=HARD()?rnd(HC.dunFr0,HC.dunFr1):rnd(.12,.2);
+  const fr=HARD()?rnd(.2,.3):rnd(.12,.2);
   const amt=Math.min(G.debt[d.id],Math.max(2000,Math.round(G.debt[d.id]*fr/100)*100));
-  const dd=HARD()?HC.dunDue0+Math.floor(Math.random()*HC.dunDue1):8+Math.floor(Math.random()*5);
+  const dd=HARD()?5+Math.floor(Math.random()*3):8+Math.floor(Math.random()*5);
   const D={who:d.id,amt,paid:0,due:G.round+dd};duns().push(D);
-  if(HARD())G.nextDun=G.round+HC.dunIv0+Math.floor(Math.random()*HC.dunIv1);
+  if(HARD())G.nextDun=G.round+3+Math.floor(Math.random()*4);
   save();
   const many=duns().length>1;
   queueEvent(()=>sceneChoice(d.id,fillT(DUN[d.id].start,{d:dd,a:fmt(amt)+' 안'}).concat(many?[['cal','아, 알비나 양… 독촉이 '+duns().length+'건이나 겹쳤답니다…','shock']]:[]),null,SPK[d.id].n+' · 빚 독촉').then(()=>{renderAll()}));
@@ -2626,12 +2624,12 @@ async function dunDue(D){
     if(!G.debt[D.who]){G.helpers.push(D.who);save();await playScene(D.who,SCENES[D.who])}
     if(await checkFreed())return;
   }else{
-    const take=Math.floor(G.cash*Math.min(.8,DUN[D.who].take+(HARD()?HC.dunTake:0)));G.cash-=take;let extra='';
-    if(HARD()){const pen=Math.round(rem*HC.dunPen/100)*100;G.debt[D.who]+=pen;G.debtMax[D.who]+=pen;extra+=(D.who==='mat'?'':'')}
+    const take=Math.floor(G.cash*Math.min(.8,DUN[D.who].take+(HARD()?.15:0)));G.cash-=take;let extra='';
+    if(HARD()){const pen=Math.round(rem*.3/100)*100;G.debt[D.who]+=pen;G.debtMax[D.who]+=pen;extra+=(D.who==='mat'?'':'')}
     if(D.who==='mat'){const hs=G.stocks.filter(st=>G.hold[st.id]&&G.hold[st.id].q).sort((a,b)=>G.hold[b.id].q*b.price-G.hold[a.id].q*a.price)[0];
       if(hs){const h=G.hold[hs.id],q=Math.ceil(h.q/2);h.q-=q;if(!h.q)delete G.hold[hs.id];extra=', 그리고 '+COS.find(c=>c.id===hs.id).name+' '+q+'주'}}
     dunRemove(D);if(!HARD())G.nextDun=G.round+12+Math.floor(Math.random()*7);save();renderAll();
-    await sceneChoice(D.who,fillT(DUN[D.who].fail,{p:fmt(take)+' 안',x:extra}).concat(HARD()?[['cal','…연체 가산금까지 붙었답니다. 빚이 '+fmt(Math.round(rem*HC.dunPen/100)*100)+' 안 늘었어요.','shock']]:[]),null,SPK[D.who].n+' · 연체');
+    await sceneChoice(D.who,fillT(DUN[D.who].fail,{p:fmt(take)+' 안',x:extra}).concat(HARD()?[['cal','…연체 가산금까지 붙었답니다. 빚이 '+fmt(Math.round(rem*.3/100)*100)+' 안 늘었어요.','shock']]:[]),null,SPK[D.who].n+' · 연체');
   }
   renderAll();
 }
@@ -2651,17 +2649,17 @@ function rogueCheck(moves){
   if(userPaused)return;
   if(!G.tutDone||G.paused||busyEvent||G.cash<3000)return;
   if(G.nextRogue==null)G.nextRogue=G.round+6;
-  if(G.round<G.nextRogue||Math.random()>(HARD()?HC.rogueP:.2))return;
+  if(G.round<G.nextRogue||Math.random()>(HARD()?.35:.2))return;
   let i;const r=Math.random();
   const blues=moves.filter(m=>m.ch<-.03).map(m=>m.i),neg=(G.pending||[]).filter(p=>p.dir<0).map(p=>COS.findIndex(c=>c.id===p.id));
   if(r<.5&&blues.length)i=blues[Math.floor(Math.random()*blues.length)];
   else if(r<.7&&neg.length)i=neg[0];
   else i=Math.floor(Math.random()*COS.length);
-  G.nextRogue=G.round+(HARD()?HC.rogueIv0:10)+Math.floor(Math.random()*(HARD()?HC.rogueIv1:10));
+  G.nextRogue=G.round+(HARD()?5:10)+Math.floor(Math.random()*(HARD()?6:10));
   queueEvent(()=>rogueBuy(i));
 }
 async function rogueBuy(i){
-  const st=G.stocks[i],spend=Math.floor(G.cash*(HARD()?rnd(HC.rogueLo,HC.rogueHi):rnd(.12,.3))),q=Math.max(1,Math.floor(spend/st.price));if(q*st.price>G.cash)return;
+  const st=G.stocks[i],spend=Math.floor(G.cash*(HARD()?rnd(.25,.5):rnd(.12,.3))),q=Math.max(1,Math.floor(spend/st.price));if(q*st.price>G.cash)return;
   G.paused=true;const c=gq('cutin'),cal=c.querySelector('.ccal'),txt=gq('cutText'),fl=c.querySelector('.cflash'),res=gq('cutRes'),sub=gq('cutSub'),gl=c.querySelector('.glint');
   gq('cutImg').src=ASSETS.cal;c.hidden=false;res.hidden=true;txt.style.opacity=0;fl.style.opacity=0;gl.style.opacity=0;
   sub.textContent='알비나 양… 저 '+COS[i].name+', 특별히 오를 거랍니다.';
